@@ -1,7 +1,6 @@
 from model.pet import Pet
-from fastapi import HTTPException
 from service import abb_service
-from fastapi import APIRouter
+from fastapi import APIRouter,  Response, status
 
 abb_service = abb_service.ABBService()
 
@@ -11,26 +10,43 @@ abb_route = APIRouter(prefix="/abb")
 async def get_pets():
     return abb_service.abb.root
 
-@abb_route.post("/")
-async def create_pet(pet: Pet):
-    result = abb_service.abb.add(pet)
-    if result == "id erroneo":
-        raise HTTPException(status_code=400, detail="El ID de la mascota ya existe")
-    return {"message": "Mascota adicionada correctamente"}
+@abb_route.get("/inorder")
+async def get_pets_inorder():
+    try:
+        return abb_service.abb.inorder()
+    except Exception as e:
+        return {"message":e.args[0]}
 
+@abb_route.get("/preorder")
+async def get_pets_preorder():
+    try:
+        return abb_service.abb.root.get_preorder()
+    except Exception as e:
+        return {"message": e.args[0]}
 
-#obtener una mascota por id
-@abb_route.get("/{id}")
-async def get_pet(id: int):
-    node = abb_service.abb.root
-    while node:
-        if id < node.pet.id:
-            node = node.left
-        elif id > node.pet.id:
-            node = node.right
-        else:
-            return node.pet  # Se encontró la mascota
-    raise HTTPException(status_code=404, detail="Mascota no encontrada")
+@abb_route.get("/postorder")
+async def get_pets_postorder():
+    try:
+        return abb_service.abb.root.get_postorden()
+    except Exception as e:
+        return {"message": e.args[0]}
+@abb_route.post("/", status_code=200)
+async def create_pet(pet:Pet, response: Response):
+    try:
+        abb_service.abb.add(pet)
+        return {"message":"Adicionado exitosamente"}
+    except Exception as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"message":e.args[0]}
+
+@abb_route.put("/{id}")
+async def update_pet(id: int, pet: Pet, response: Response):
+    try:
+        abb_service.abb.update(pet,id)
+        return {"message": "Actualizado exitosamente"}
+    except Exception as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"message": e.args[0]}
 
 #Eliminar mascota por id
 @abb_route.delete("/{id}")
@@ -42,13 +58,7 @@ async def delete_pet(id: int):
     return {"message": "Mascota eliminada correctamente"}
 
 #Actualizar mascota por id
-@abb_route.put("/{id}")
-async def update_pet(id: int, pet: Pet):
-    if abb_service.abb.root is None:
-        raise HTTPException(status_code=404, detail="El árbol está vacío")
 
-    abb_service.abb.root.update(id, pet)
-    return {"message": "Mascota actualizada correctamente"}
 
 #listar por razas
 @abb_route.get("/races")
