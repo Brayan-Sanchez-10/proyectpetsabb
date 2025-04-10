@@ -30,14 +30,17 @@ async def get_pets_postorder():
         return abb_service.abb.root.get_postorden()
     except Exception as e:
         return {"message": e.args[0]}
+
+
 @abb_route.post("/", status_code=200)
-async def create_pet(pet:Pet, response: Response):
-    try:
-        abb_service.abb.add(pet)
-        return {"message":"Adicionado exitosamente"}
-    except Exception as e:
+async def create_pet(pet: Pet, response: Response):
+    result = abb_service.abb.add(pet)
+
+    if result == "Adicionado":
+        return {"message": "Adicionado exitosamente"}
+    else:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return {"message":e.args[0]}
+        return {"message": result}
 
 @abb_route.put("/{id}")
 async def update_pet(id: int, pet: Pet, response: Response):

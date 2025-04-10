@@ -61,7 +61,7 @@ class NodeABB:
                 return "Adicionado"
         # id incorrecto
         else:
-            return "id erroneo"
+            return "El id que suministraste ya existe"
 
 
 
