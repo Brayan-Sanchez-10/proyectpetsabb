@@ -4,31 +4,85 @@ class ABB():
     def __init__(self):
         self.root = None
 
+    #crear mascota:
     def add(self, pet: Pet):
         if self.root == None:
             self.root = NodeABB(pet)
             return "Adicionado"
         else:
             return self.root.add(pet)
-
+    #Editar por id:
     def update(self, pet:Pet, id: int):
         if self.root == None:
             raise Exception("No existen mascotas en el listado")
         else:
             self.root.update(pet, id)
-
+    #listar en inorder:
     def inorder(self):
         if self.root == None:
             raise Exception("No existen mascotas en el listado")
         else:
             return self.root.get_inorder()
 
+    # listar en preorder:
+    def preorder(self):
+        if self.root == None:
+            raise Exception("No existen mascotas en el listado")
+        else:
+            return self.root.get_preorder()
+
+    # listar en postorder:
+    def postorder(self):
+        if self.root == None:
+            raise Exception("No existen mascotas en el listado")
+        else:
+            return self.root.get_postorden()
+
+    #Borrar por id:
     def delate(self, id, pet: Pet):
         if self.root == None:
             return "El arbol esta vacio"
         else:
             return self.root.delate(id)
 
+    #Borra mascotas por nivel:
+    def delete_by_level(self, level: int):
+        if self.root == None:
+            raise Exception("El árbol está vacío")
+
+        if level == 0:
+
+            pets_to_reinsert = []
+            if self.root.left:
+                pets_to_reinsert += self.root.left.get_preorder()
+            if self.root.right:
+                pets_to_reinsert += self.root.right.get_preorder()
+            self.root = None
+            for pet in pets_to_reinsert:
+                self.add(pet)
+            return f"Se eliminó el nivel {level} (raíz) y se reinsertaron sus hijos"
+
+
+        pets_to_reinsert = []
+        self.root, pets_to_reinsert = self.root._delete_level(level, 0, pets_to_reinsert)
+        for pet in pets_to_reinsert:
+            self.add(pet)
+        return f"Se eliminaron los nodos del nivel {level} y se reinsertaron sus hijos"
+
+    #listar razas:
+    def list_race(self, races=None):
+        if self.root is None:
+            return {}
+        else:
+            return self.root.list_race(races)
+
+
+    #Reporte de Mascotas:
+    def report_by_location_gender(self):
+        if self.root == None:
+            return {}
+        report = self.root.report_by_location_gender()
+        return [{"location": ciudad, **datos} for ciudad, datos in report.items()]
 class NodeABB:
     def __init__(self, pet: Pet):
         self.pet = pet
@@ -116,6 +170,25 @@ class NodeABB:
 
             return nuevo_root
 
+    #Eliminar mascotas por nivel:
+    def _delete_level(self, target_level, current_level, pets_to_reinsert):
+        if current_level + 1 == target_level:
+            # Revisamos hijos del siguiente nivel
+            if self.left:
+                pets_to_reinsert += self.left.get_preorder()
+                self.left = None
+            if self.right:
+                pets_to_reinsert += self.right.get_preorder()
+                self.right = None
+        else:
+            if self.left:
+                self.left, pets_to_reinsert = self.left._delete_level(target_level, current_level + 1, pets_to_reinsert)
+            if self.right:
+                self.right, pets_to_reinsert = self.right._delete_level(target_level, current_level + 1,
+                                                                        pets_to_reinsert)
+
+        return self, pets_to_reinsert
+
     def get_inorder(self):
         listPets = []
         if self.left is not None:
@@ -146,7 +219,7 @@ class NodeABB:
 
     #Listar mascotas por raza
     def list_race(self, races=None):
-        if races is None:
+        if races == None:
             races = {}
         if self.pet.race in races:
             races[self.pet.race] += 1
@@ -159,6 +232,29 @@ class NodeABB:
 
         return races
 
+    #Reporte de mascotas por ciudad:
+    def report_by_location_gender(self, report=None):
+        if report is None:
+            report = {}
+
+        location = self.pet.location
+        gender = self.pet.gender.lower()
+
+        if location not in report:
+            report[location] = {"total": 0, "machos": 0, "hembras": 0}
+
+        report[location]["total"] += 1
+        if gender == "macho":
+            report[location]["machos"] += 1
+        elif gender == "hembra":
+            report[location]["hembras"] += 1
+
+        if self.left:
+            self.left.report_by_location_gender(report)
+        if self.right:
+            self.right.report_by_location_gender(report)
+
+        return report
 class NodeAVL(NodeABB):
     def __init__(self, pet:Pet):
         super().__init__(pet)

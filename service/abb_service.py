@@ -7,6 +7,7 @@ class ABBService():
         self.abb = ABB()
         # llenar ABB
 
-        self.abb.add(Pet(id=7,name="Lulu",age=13, race= "pastor"))
-        rocky = Pet(id=2,name="Rocky",age=5, race= "labrador")
+        self.abb.add(Pet(id=7,name="Lulu",age=13, race= "pastor", location= "manizales", gender= "hembra"))
+        rocky = Pet(id=3,name="Rocky",age=5, race= "labrador", location= "Chinchina", gender= "macho")
         self.abb.add(rocky)
+
